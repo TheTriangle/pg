@@ -1,0 +1,16 @@
+
+#include "TXLib.h"
+
+void Human();
+
+int main()
+    {
+    txCreateWindow (800, 600);
+
+    //blablabla
+
+    return 0;
+    }
+
+void Human ()
+    {}

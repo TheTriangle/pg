@@ -1,0 +1,143 @@
+//#include "Bullet.h"
+class CircleUnit : public Unit
+    {
+    protected:
+    HDC arrowdc;
+    HDC bulletdc;
+    Bullet *Bullets;
+    int activebulletsnum = 0;
+    double radius;
+    HDC dc;
+    POINT imgsize;
+    int direction;
+    int id;
+    POINT cords;
+    double hp;
+
+    public:
+
+    void setCUnitCords (double x, double y)
+        {
+        this -> setCords (x, y);
+        cords = {x, y};
+        }
+
+    POINT getCUnitCords()
+        {
+        return this -> getCords();
+        }
+
+    double getX()
+        {
+        return cords.x;
+        }
+    double getY()
+        {
+        return cords.y;
+        }
+    CircleUnit (HDC image, double imgwidth, double imgheight, double x, double y, double grad, double ghp, int id) : Unit (x, y, ghp, id)
+        {
+        radius = grad;
+        dc = image;
+        imgsize = {imgwidth, imgheight};
+        activebulletsnum = 0;
+        Bullets = new Bullet[900000];
+        }
+    void setRadius (double grad)
+        {
+        radius = grad;
+        }
+    double getRadius()
+        {
+        return radius;
+        }
+    double setImage (HDC image, double imgwidth, double imgheight)
+        {
+        dc = image;
+        imgsize = {imgwidth, imgheight};
+        }
+    HDC getImage()
+        {
+        return dc;
+        }
+    ~CircleUnit()
+        {
+        txDeleteDC (dc);
+        }
+
+
+    bool TestIfHitted (CircleUnit bullet)
+        {
+        if (this->getDistanceTo(bullet.getX(), bullet.getY()) <= radius + bullet.getRadius()) return true;
+        else return false;
+        }
+
+    double getDistanceTo (double xto, double yto)
+        {
+        assert ((cords.x - xto) * (cords.x - xto) + (cords.y - yto) * (cords.y - yto) >= 0);
+        //printf ("point a ");
+        return sqrt((cords.x - xto) * (cords.x - xto) + (cords.y - yto) * (cords.y - yto));
+        }
+
+    double getAxisAngleTo (double xto, double yto)
+        {
+        if (xto == cords.x) xto = cords.x + 0.015;
+        if (yto == cords.y) yto = cords.y + 0.015;
+        assert (getDistanceTo(xto, yto) != 0);
+        //printf ("point b %f ", getDistanceTo(xto, yto));
+        double angle = asin((yto - cords.y) / getDistanceTo (xto, yto));
+        if (cords.x > xto && angle > 0)  return 180*DEGREEMODIFIER - angle;
+        if (cords.x > xto && angle <= 0) return -180*DEGREEMODIFIER - angle;
+        if (cords.x < xto && angle <= 0) return angle;
+        if (cords.x < xto && angle >= 0) return angle;
+        }
+
+    double getAngle()
+        {
+        //printf ("point c ");
+        return getAxisAngleTo (txMouseX(), txMouseY());
+        }
+
+    double getAngleTo (double xto, double yto)
+        {
+        return getAngle() - getAxisAngleTo (xto, yto);
+        }
+    void Shoot(HDC bulletimage, double imgwidth, double imgheight, double grad, double sspeed, double gdamage)
+        {
+        POINT helpcords = this->getCUnitCords();
+        Bullet helpbullet (bulletimage, imgwidth, imgheight, helpcords.x, helpcords.y, grad, this->getAngleTo (txGetExtentX(), cords.y), sspeed, 9999, gdamage, id);
+        Bullets[activebulletsnum] = helpbullet;
+        activebulletsnum++;
+        }
+    void Move()
+        {
+        MoveBullets();
+        DrawBullets();
+        }
+    int draw (double lucx, double lucy, double alpha)
+        {
+        if (!dc) printf ("my picture is not loaded\n");
+        POINT thissize = {imgsize.x * GLOBALSIZE, imgsize.y * GLOBALSIZE};
+        myAlphaBlend (txDC(), cords.x - thissize.x/2, cords.y - thissize.y/2,
+                      thissize.x, thissize.y, dc, lucx, lucy, imgsize.x, imgsize.y, alpha);
+
+        //txAlphaBlend (txDC(), cords.x - imgsize.x/2, cords.y - imgsize.y/2, imgsize.x, imgsize.y, dc, lucx, lucy, alpha);
+        return 0;
+        }
+
+    void MoveBullets()
+        {
+        for (int i = 0; i < activebulletsnum; i++)
+            {
+            Bullets[i].move();
+            }
+        }
+    void DrawBullets()
+        {
+        for (int i = 0; i < activebulletsnum; i++)
+            {
+            Bullets[i].draw(1);
+            }
+        }
+    };
+

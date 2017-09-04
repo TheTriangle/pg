@@ -1,0 +1,77 @@
+
+
+class Bullet : Unit
+    {
+    protected:
+    double angle;
+    double speed;
+    double damage;
+    HDC dc;
+    POINT imgsize;
+    int active;
+    int direction;
+    public:
+    Bullet (HDC image, double imgwidth, double imgheight, double x, double y, double grad, double sangle, double sspeed, double ghp, double gdamage, int id) : Unit (x, y, ghp, id)
+        {
+        direction = returndirection (12, angle - PI/2);
+
+        imgsize = {imgwidth, imgheight};
+        dc = image;
+        angle = sangle;
+        speed = sspeed;
+        damage = gdamage;
+        active = 1;
+        }
+    Bullet()
+        {}
+    void move ()
+        {
+        cords.y += speed * sin (angle);
+        cords.x += speed * cos (angle);
+        }
+    int getId()
+        {
+        return this->id;
+        }
+    double getDamage()
+        {
+        return damage;
+        }
+    void setActivity (int gactiv)
+        {
+        active = gactiv;
+        }
+    int draw (double lucx, double lucy, double alpha)
+        {
+        txAlphaBlend (txDC(), cords.x - imgsize.x/2, cords.y - imgsize.y/2, imgsize.x, imgsize.y, dc, lucx, lucy, alpha);
+        //txAlphaBlend (txDC(), 100, 100, 64, 64, dc, 0, 0, alpha);
+        //printf ("x == %f, y == %f\n", cords.x, cords.y);
+        //printf ("animx == %f, animy == %f\n", lucx, lucy);
+        //printf ("imgsizex == %f, imgsizey == %f\n", imgsize.x, imgsize.y);
+        //getch();
+        return 0;
+        }
+    int draw (double alpha)
+        {
+        if (!dc) printf ("my picture is not loaded\n");
+        int hdirection = 0;
+
+        if (fabs (angle/DEGREEMODIFIER) < 22.5) direction = DIR_RIGHT;
+        if (angle/DEGREEMODIFIER >= 22.5 && angle/DEGREEMODIFIER < 67.5) direction = DIR_DRIGHT;
+        if (angle/DEGREEMODIFIER >= 67.5 && angle/DEGREEMODIFIER < 112.5) direction = DIR_DOWN;
+        if (angle/DEGREEMODIFIER >= 112.5 && angle/DEGREEMODIFIER < 157.5) direction = DIR_DLEFT;
+        if (fabs (angle/DEGREEMODIFIER) > 157.5) direction = DIR_LEFT;
+
+        if (angle/DEGREEMODIFIER <= -112.5 && angle/DEGREEMODIFIER > -157.5) direction = DIR_ULEFT;
+        if (angle/DEGREEMODIFIER <= -67.5 && angle/DEGREEMODIFIER > -112.5) direction = DIR_UP;
+        if (angle/DEGREEMODIFIER <= -22.5 && angle/DEGREEMODIFIER > -67.5) direction = DIR_URIGHT;
+
+        POINT thissize = {imgsize.x * GLOBALSIZE, imgsize.y * GLOBALSIZE};
+        myAlphaBlend (txDC(), cords.x - thissize.x/2, cords.y - thissize.y/2,
+                    thissize.x, thissize.y, dc, 0, direction * imgsize.y, imgsize.x, imgsize.y, alpha);
+
+
+        //txAlphaBlend (txDC(), cords.x - imgsize.x/2, cords.y - imgsize.y/2, imgsize.x, imgsize.y, dc, 0, direction * imgsize.y, alpha);
+        return 0;
+        }
+    };
